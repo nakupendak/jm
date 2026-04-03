@@ -1364,8 +1364,8 @@
             const haptics = window.Telegram?.WebApp?.HapticFeedback;
             const triggerTabHaptic = () => {
                 if (!haptics) return;
-                // Simple and short selection change haptic
-                haptics.selectionChanged();
+                // Use impactOccurred('medium') for a more tactile and premium feel
+                haptics.impactOccurred('medium');
             };
 
             const navLinks = document.querySelectorAll('nav a');
