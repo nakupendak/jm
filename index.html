@@ -1363,9 +1363,8 @@
             const haptics = window.Telegram?.WebApp?.HapticFeedback;
             const triggerTabHaptic = () => {
                 if (!haptics) return;
-                // Sequence of vibrations for a 'premium' non-typical feel
-                haptics.impactOccurred('medium');
-                setTimeout(() => haptics.impactOccurred('light'), 45);
+                // Simple and short selection change haptic
+                haptics.selectionChanged();
             };
 
             const navLinks = document.querySelectorAll('nav a');
