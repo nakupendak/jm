@@ -181,41 +181,30 @@
             box-shadow: 0 8px 32px rgba(137, 76, 253, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
 
-        /* ─── Page transitions ─── */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* ─── Page transitions (seamless — no blank frames) ─── */
+        .page {
+            opacity: 1;
+            transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity, transform;
         }
 
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
+        .page-entering {
+            animation: pageIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        .page-transition {
-            animation: fadeIn 0.4s ease-out forwards;
+        .page-leaving {
+            animation: pageOut 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        .page-exit {
-            animation: fadeOut 0.3s ease-in forwards;
+        @keyframes pageIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        .hidden {
-            display: none !important;
+        @keyframes pageOut {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(-4px); }
         }
 
         /* ─── Card slide in ─── */
@@ -1372,9 +1361,9 @@
             const navLinks = document.querySelectorAll('nav a');
             let currentPage = 'home';
 
-            // Initial animation
-            pages[currentPage].element.classList.add('page-transition');
-
+            // Add page class to all pages, activate initial page
+            Object.values(pages).forEach(p => p.element.classList.add('page'));
+            // Home starts visible, others hidden
 
             const switchPage = (targetId) => {
                 if (targetId === currentPage || !pages[targetId]) return;
@@ -1382,25 +1371,27 @@
                 const currentEl = pages[currentPage].element;
                 const targetEl = pages[targetId].element;
 
-                // Update navigation styles instantly for better UX
                 updateNavStyles(targetId);
 
-                // 1. Fade out current page
-                currentEl.classList.remove('page-transition');
-                currentEl.classList.add('page-exit');
+                // 1. Show target immediately (still transparent via animation)
+                targetEl.classList.remove('hidden');
+                targetEl.classList.remove('page-leaving');
+                void targetEl.offsetWidth; // force reflow so animation fires
+                targetEl.classList.add('page-entering');
 
-                // 2. Switch classes after animation
+                // 2. Start fade-out on current
+                currentEl.classList.add('page-leaving');
+
+                currentPage = targetId;
+                window.scrollTo(0, 0);
+
+                // 3. Hide old page after its animation finishes
+                const ANIM_MS = 200;
                 setTimeout(() => {
-                    // Hide current, show target
+                    currentEl.classList.remove('page-leaving');
                     currentEl.classList.add('hidden');
-                    currentEl.classList.remove('page-exit');
-
-                    targetEl.classList.remove('hidden');
-                    targetEl.classList.add('page-transition');
-
-                    currentPage = targetId;
-                    window.scrollTo(0, 0);
-                }, 250);
+                    targetEl.classList.remove('page-entering');
+                }, ANIM_MS);
             };
 
             const updateNavStyles = (activeId) => {
