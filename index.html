@@ -214,6 +214,11 @@
             animation: fadeOut 0.3s ease-in forwards;
         }
 
+        /* Prevent flash: page is invisible before transition starts */
+        .page-entering {
+            opacity: 0;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -1372,8 +1377,14 @@
             const navLinks = document.querySelectorAll('nav a');
             let currentPage = 'home';
 
-            // Initial animation
-            pages[currentPage].element.classList.add('page-transition');
+            // Initial animation: set entering state first, then animate
+            pages[currentPage].element.classList.add('page-entering');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    pages[currentPage].element.classList.remove('page-entering');
+                    pages[currentPage].element.classList.add('page-transition');
+                });
+            });
 
 
             const switchPage = (targetId) => {
@@ -1389,17 +1400,25 @@
                 currentEl.classList.remove('page-transition');
                 currentEl.classList.add('page-exit');
 
-                // 2. Switch classes after animation
+                // 2. Switch after fade-out animation
                 setTimeout(() => {
-                    // Hide current, show target
                     currentEl.classList.add('hidden');
                     currentEl.classList.remove('page-exit');
 
+                    // Make target page invisible before showing it
+                    targetEl.classList.add('page-entering');
                     targetEl.classList.remove('hidden');
-                    targetEl.classList.add('page-transition');
 
                     currentPage = targetId;
                     window.scrollTo(0, 0);
+
+                    // Wait two frames so browser paints the invisible state first
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            targetEl.classList.remove('page-entering');
+                            targetEl.classList.add('page-transition');
+                        });
+                    });
                 }, 250);
             };
 
