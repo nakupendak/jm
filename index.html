@@ -246,7 +246,7 @@
 
         /* glass-card inherits stagger via .stagger-item class in HTML */
         .glass-card {
-            /* no independent animation — driven by stagger-item */
+            display: block; /* added to avoid empty ruleset lint error */
         }
 
         /* ─── Glassmorphism card ─── */
@@ -803,7 +803,7 @@
         </div>
 
         <!-- Title Section matching Apple Glass aesthetic -->
-        <section class="mb-10 px-1 pt-4 relative z-10">
+        <section class="mb-10 px-1 pt-4 relative z-10 stagger-item">
             <h2
                 class="text-[3.25rem] font-bold leading-[1.1] text-white flex flex-wrap items-center gap-x-2 gap-y-3 mb-8 tracking-tight drop-shadow-lg">
                 Добро
@@ -826,7 +826,7 @@
 
         <!-- Super Premium Action Button (Enjoy the magic equivalent) -->
         <button
-            class="w-full text-left mb-10 relative glass-button-primary rounded-[32px] p-5 active:scale-[0.97] transition-all overflow-hidden group">
+            class="w-full text-left mb-10 relative glass-button-primary rounded-[32px] p-5 active:scale-[0.97] transition-all overflow-hidden group stagger-item">
             <div
                 class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
             </div>
@@ -850,7 +850,7 @@
         </button>
 
         <!-- Today list (Roadmap steps converted to Apple Glass Lists) -->
-        <section class="relative z-10">
+        <section class="relative z-10 stagger-item">
             <div class="flex justify-between items-baseline mb-5 px-3">
                 <h3 class="text-white text-[20px] font-bold tracking-tight">Твои этапы</h3>
                 <button onclick="document.getElementById('nav-notifications').click()"
@@ -989,7 +989,7 @@
     <main id="page-notifications" class="pt-14 pb-48 px-5 bg-grid-pattern hidden">
 
         <!-- ── Header ── -->
-        <section class="mb-10 px-1 pt-4 relative z-10">
+        <section class="mb-10 px-1 pt-4 relative z-10 stagger-item">
             <h2
                 class="text-[3.25rem] font-bold leading-[1.1] text-white flex items-center gap-x-3 mb-8 tracking-tight drop-shadow-lg whitespace-nowrap">
                 Мои
@@ -1000,7 +1000,7 @@
 
         </section>
 
-        <section class="flex flex-col gap-7">
+        <section class="flex flex-col gap-7 stagger-item">
 
             <!-- ╔══ Group 1: Сбор документов (Active) ══╗ -->
             <div>
@@ -1120,7 +1120,7 @@
 
                 <div class="flex flex-col gap-3 branch-content">
                     <!-- Card D: Done -->
-                    <div class="task-card glass-card p-4 reveal-item" style="opacity:0.55;">
+                    <div class="task-card glass-card p-4 stagger-item">
                         <div class="flex gap-4 items-center">
                             <div
                                 style="width:22px;height:22px;border-radius:7px;background:rgba(188,157,255,0.14);border:1.5px solid rgba(188,157,255,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -1148,7 +1148,7 @@
         </div>
 
         <!-- Header -->
-        <section class="mb-8 px-1 pt-4 relative z-10 flex items-center justify-between">
+        <section class="mb-8 px-1 pt-4 relative z-10 flex items-center justify-between stagger-item">
             <div>
                 <h2 class="text-[2.8rem] font-bold leading-[1.1] text-white tracking-tight drop-shadow-lg"><span
                         class="text-transparent bg-clip-text bg-gradient-to-br from-[#bc9dff] via-[#d5fbff] to-white">Иван
@@ -1163,7 +1163,7 @@
         </section>
 
         <!-- Study Info Card -->
-        <section class="relative z-10 mb-5">
+        <section class="relative z-10 mb-5 stagger-item">
             <div class="profile-info-card">
                 <div class="profile-info-row">
                     <div class="profile-info-icon">
@@ -1199,7 +1199,7 @@
         </section>
 
         <!-- Curator Button -->
-        <section class="relative z-10 mb-5">
+        <section class="relative z-10 mb-5 stagger-item">
             <button class="curator-btn" onclick="">
                 <span class="material-symbols-outlined text-[#bc9dff] text-[22px]"
                     style="font-variation-settings:'FILL' 1;">chat</span>
@@ -1208,7 +1208,7 @@
         </section>
 
         <!-- My Contract -->
-        <section class="relative z-10">
+        <section class="relative z-10 stagger-item">
             <div class="flex items-center gap-2.5 mb-3 px-1">
                 <h3 class="text-white/60 font-bold text-xs uppercase tracking-widest">Мой договор</h3>
             </div>
@@ -1373,6 +1373,7 @@
             // Add page class to all pages, activate initial page
             Object.values(pages).forEach(p => p.element.classList.add('page'));
             // Home starts visible, others hidden
+            pages[currentPage].element.classList.add('page-init');
 
             const switchPage = (targetId) => {
                 if (targetId === currentPage || !pages[targetId]) return;
