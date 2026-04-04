@@ -214,25 +214,6 @@
             animation: fadeOut 0.3s ease-in forwards;
         }
 
-        /* Prevent flash: page is invisible before transition starts */
-        .page-entering {
-            opacity: 0;
-        }
-
-        /* ─── Page-switch curtain (prevents backdrop-filter flash) ─── */
-        #page-curtain {
-            position: fixed;
-            inset: 0;
-            background: #0f0b1e;
-            z-index: 200;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.18s ease;
-        }
-        #page-curtain.visible {
-            opacity: 1;
-        }
-
         .hidden {
             display: none !important;
         }
@@ -1283,9 +1264,6 @@
         </div>
     </div>
 
-    <!-- Page-switch curtain: hides backdrop-filter / blend-mode render flash -->
-    <div id="page-curtain"></div>
-
     <!-- Bottom Navigation Shell in Apple Glass Style -->
     <nav
         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center gap-[24px] px-[12px] py-[8px] bg-black/30 backdrop-blur-3xl border border-white/[0.12] rounded-full shadow-[0_24px_50px_rgba(0,0,0,0.6)]">
@@ -1397,7 +1375,6 @@
             // Initial animation
             pages[currentPage].element.classList.add('page-transition');
 
-            const curtain = document.getElementById('page-curtain');
 
             const switchPage = (targetId) => {
                 if (targetId === currentPage || !pages[targetId]) return;
@@ -1405,33 +1382,25 @@
                 const currentEl = pages[currentPage].element;
                 const targetEl = pages[targetId].element;
 
-                // Update nav styles immediately
+                // Update navigation styles instantly for better UX
                 updateNavStyles(targetId);
 
-                // 1. Bring curtain down (fade to bg color in 180ms)
-                curtain.classList.add('visible');
+                // 1. Fade out current page
+                currentEl.classList.remove('page-transition');
+                currentEl.classList.add('page-exit');
 
+                // 2. Switch classes after animation
                 setTimeout(() => {
-                    // 2. While hidden behind curtain: swap pages
-                    currentEl.classList.remove('page-transition');
+                    // Hide current, show target
                     currentEl.classList.add('hidden');
+                    currentEl.classList.remove('page-exit');
 
                     targetEl.classList.remove('hidden');
-                    targetEl.classList.remove('page-transition');
+                    targetEl.classList.add('page-transition');
+
                     currentPage = targetId;
                     window.scrollTo(0, 0);
-
-                    // 3. Allow enough time for WebKit to fully composite backdrop-filter, then lift curtain
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            // Extra timeout for Telegram WebView / WebKit backdrop-filter compositing
-                            setTimeout(() => {
-                                curtain.classList.remove('visible');
-                                targetEl.classList.add('page-transition');
-                            }, 80);
-                        });
-                    });
-                }, 200); // wait for curtain to fully cover
+                }, 250);
             };
 
             const updateNavStyles = (activeId) => {
