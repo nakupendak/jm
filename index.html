@@ -219,6 +219,20 @@
             opacity: 0;
         }
 
+        /* ─── Page-switch curtain (prevents backdrop-filter flash) ─── */
+        #page-curtain {
+            position: fixed;
+            inset: 0;
+            background: #0f0b1e;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+        #page-curtain.visible {
+            opacity: 1;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -1269,6 +1283,9 @@
         </div>
     </div>
 
+    <!-- Page-switch curtain: hides backdrop-filter / blend-mode render flash -->
+    <div id="page-curtain"></div>
+
     <!-- Bottom Navigation Shell in Apple Glass Style -->
     <nav
         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center gap-[24px] px-[12px] py-[8px] bg-black/30 backdrop-blur-3xl border border-white/[0.12] rounded-full shadow-[0_24px_50px_rgba(0,0,0,0.6)]">
@@ -1377,15 +1394,10 @@
             const navLinks = document.querySelectorAll('nav a');
             let currentPage = 'home';
 
-            // Initial animation: set entering state first, then animate
-            pages[currentPage].element.classList.add('page-entering');
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    pages[currentPage].element.classList.remove('page-entering');
-                    pages[currentPage].element.classList.add('page-transition');
-                });
-            });
+            // Initial animation
+            pages[currentPage].element.classList.add('page-transition');
 
+            const curtain = document.getElementById('page-curtain');
 
             const switchPage = (targetId) => {
                 if (targetId === currentPage || !pages[targetId]) return;
@@ -1393,33 +1405,33 @@
                 const currentEl = pages[currentPage].element;
                 const targetEl = pages[targetId].element;
 
-                // Update navigation styles instantly for better UX
+                // Update nav styles immediately
                 updateNavStyles(targetId);
 
-                // 1. Fade out current page
-                currentEl.classList.remove('page-transition');
-                currentEl.classList.add('page-exit');
+                // 1. Bring curtain down (fade to bg color in 180ms)
+                curtain.classList.add('visible');
 
-                // 2. Switch after fade-out animation
                 setTimeout(() => {
+                    // 2. While hidden behind curtain: swap pages
+                    currentEl.classList.remove('page-transition');
                     currentEl.classList.add('hidden');
-                    currentEl.classList.remove('page-exit');
 
-                    // Make target page invisible before showing it
-                    targetEl.classList.add('page-entering');
                     targetEl.classList.remove('hidden');
-
+                    targetEl.classList.remove('page-transition');
                     currentPage = targetId;
                     window.scrollTo(0, 0);
 
-                    // Wait two frames so browser paints the invisible state first
+                    // 3. Allow enough time for WebKit to fully composite backdrop-filter, then lift curtain
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
-                            targetEl.classList.remove('page-entering');
-                            targetEl.classList.add('page-transition');
+                            // Extra timeout for Telegram WebView / WebKit backdrop-filter compositing
+                            setTimeout(() => {
+                                curtain.classList.remove('visible');
+                                targetEl.classList.add('page-transition');
+                            }, 80);
                         });
                     });
-                }, 250);
+                }, 200); // wait for curtain to fully cover
             };
 
             const updateNavStyles = (activeId) => {
